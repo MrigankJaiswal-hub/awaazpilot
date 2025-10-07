@@ -1,0 +1,34 @@
+{
+  "name": "awaazpilot-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AwaazPilot backend – Express API + WebSocket proxy to Murf",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p .",
+    "start": "node dist/server.js",
+    "lint": "echo \"(add eslint/prettier if you want)\"",
+    "test": "echo \"(add tests here)\""
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "multer": "^2.0.2",
+    "node-fetch": "^3.3.2",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^20.14.11",
+    "@types/node-fetch": "^2.6.13",
+    "@types/ws": "^8.5.10",
+    "tsx": "^4.19.1",
+    "typescript": "^5.5.4"
+  }
+}

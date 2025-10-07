@@ -1,0 +1,65 @@
+name: Deploy AwaazPilot
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install deps (all workspaces)
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Build backend
+        run: |
+          cd server
+          pnpm build
+
+      - name: Build frontend
+        run: |
+          cd web
+          pnpm build
+
+      # ---------- Frontend Deploy: Vercel ----------
+      - name: Deploy Frontend (Vercel)
+        uses: amondnet/vercel-action@v25
+        if: ${{ secrets.VERCEL_TOKEN && secrets.VERCEL_ORG_ID && secrets.VERCEL_PROJECT_ID }}
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./web
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+          prod: true
+
+      # ---------- Backend Deploy: Render/Railway hook ----------
+      - name: Deploy Backend (Render/Railway via hook)
+        if: ${{ secrets.DEPLOY_HOOK_URL }}
+        run: |
+          curl -s -X POST "$DEPLOY_HOOK_URL"
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}
+
+      - name: Summary
+        run: |
+          echo "✅ Build finished."
+          if [ -n "${{ secrets.VERCEL_PROJECT_ID }}" ]; then echo "Frontend deployed to Vercel."; fi
+          if [ -n "${{ secrets.DEPLOY_HOOK_URL }}" ]; then echo "Backend deploy hook triggered."; fi

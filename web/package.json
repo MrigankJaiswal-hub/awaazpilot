@@ -1,0 +1,23 @@
+{
+  "name": "awaazpilot-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AwaazPilot frontend – React + Vite + TypeScript",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 5173"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.25",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^5.0.4",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.20"
+  }
+}

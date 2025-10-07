@@ -1,0 +1,199 @@
+:root {
+  --bg: #0e0f12;
+  --panel: #16181d;
+  --text: #e7e9ee;
+  --muted: #a9b0be;
+  --brand: #6ae3ff;
+  --accent: #7fff95;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  color: var(--text);
+  background: radial-gradient(1000px 600px at 10% -10%, #1b1f27, var(--bg));
+}
+
+.container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.header {
+  margin-bottom: 18px;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.logo { font-size: 28px; }
+h1 { margin: 0; font-weight: 800; letter-spacing: .5px; }
+.subtitle { margin: 6px 0 0; color: var(--muted); }
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 960px) {
+  .grid { grid-template-columns: 1fr 1fr; }
+}
+
+.card {
+  background: linear-gradient(180deg, #191c22, #14161a);
+  border: 1px solid #2a2f39;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card input, .card select, .card textarea {
+  width: 100%;
+  background: #0f1115;
+  color: var(--text);
+  border: 1px solid #2a2f39;
+  border-radius: 10px;
+  padding: 10px 12px;
+  outline: none;
+}
+
+.card textarea { resize: vertical; min-height: 88px; }
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.btn {
+  background: #20242b;
+  border: 1px solid #2a2f39;
+  color: #e7e9ee;
+  border-radius: 999px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: transform .05s ease, background .2s ease, border-color .2s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn.primary {
+  background: linear-gradient(90deg, var(--brand), var(--accent));
+  color: #0e0f12;
+  border: none;
+}
+
+.logs {
+  margin-top: 12px;
+  color: var(--muted);
+}
+.logs summary { cursor: pointer; margin-bottom: 8px; }
+.logs ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+
+.footer {
+  margin-top: 18px; color: var(--muted); text-align: center;
+}
+
+/* 🎨 VoiceConsole Performance Card Styling */
+.perf-card {
+  margin-top: 16px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 12px 16px;
+  background: #fafafa;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: background 0.3s ease;
+}
+.perf-card:hover {
+  background: #fefefe;
+}
+.perf-header {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 15px;
+  color: #333;
+}
+.perf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  gap: 6px 10px;
+  margin-bottom: 8px;
+}
+.perf-cell {
+  text-align: center;
+}
+.perf-label {
+  font-size: 12px;
+  color: #666;
+}
+.perf-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+}
+.perf-foot {
+  font-size: 13px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: gray;
+  display: inline-block;
+}
+.dot.live {
+  background: #1db954;
+  animation: blink 1s infinite;
+}
+@keyframes blink {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0.4; }
+}
+
+/* ♻️ Reset Metrics button styling */
+.btn {
+  border: none;
+  background: #ddd;
+  color: #000;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.25s ease;
+}
+.btn:hover {
+  background: #ccc;
+}
+.btn.primary {
+  background: #007bff;
+  color: white;
+}
+.btn.primary:hover {
+  background: #0069d9;
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* body { margin: 0; font-family: system-ui, sans-serif; background: #0e0f12; color: #e7e9ee; }
+.container { max-width: 980px; margin: 0 auto; padding: 24px; }
+.header { margin-bottom: 18px; }
+.brand { display: flex; gap: 12px; align-items: center; }
+.subtitle { color: #a9b0be; margin-top: 6px; }
+.grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+@media (min-width: 960px){ .grid{ grid-template-columns: 1fr 1fr; } }
+.card { background: #14161a; border: 1px solid #2a2f39; border-radius: 16px; padding: 16px; }
+.btn { padding: 8px 12px; border-radius: 999px; border: 1px solid #2a2f39; background:#20242b; color:#e7e9ee; cursor:pointer;}
+.btn.primary { background: linear-gradient(90deg, #6ae3ff, #7fff95); color: #0e0f12; border: none; } */
