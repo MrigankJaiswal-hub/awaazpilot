@@ -12,6 +12,7 @@
     "start": "node dist/server.js",
     "lint": "echo \"(add eslint/prettier if you want)\"",
     "test": "echo \"(add tests here)\""
+    "build:render": "pnpm install --frozen-lockfile && pnpm build"
   },
   "dependencies": {
     "cors": "^2.8.5",
