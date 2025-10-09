@@ -10,7 +10,7 @@ import { voicesRouter } from './routes/voices.route.js';
 
 const app = express();
 
-// Allow your Netlify site (set multiple origins if needed)
+// Allow your Netlify site
 const FRONTEND = process.env.FRONTEND_ORIGIN || 'https://lambent-caramel-605436.netlify.app';
 app.use(cors({ origin: [FRONTEND], credentials: true }));
 
@@ -21,14 +21,14 @@ app.get('/health', (_req: Request, res: Response) => res.json({ ok: true }));
 
 // API routes
 app.use('/api', tokenRouter);
-app.use('/api', dubRouter);       // mount under /api
+app.use('/api', dubRouter);
 app.use('/api', voicesRouter);
 
-// Create HTTP server + WS proxy
+// HTTP server + WS proxy
 const server = http.createServer(app);
 initWsProxy(server);
 
-// Render injects PORT (e.g., 10000+)
+// Render injects PORT
 const PORT = Number(process.env.PORT) || 3000;
 server.listen(PORT, () => {
   log.info(`[api] up on http://localhost:${PORT}`);
