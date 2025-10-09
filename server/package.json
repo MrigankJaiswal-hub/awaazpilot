@@ -3,11 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "main": "dist/server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20 <21"
+  },
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc -p .",
     "start": "node dist/server.js",
-    "build:render": "pnpm build"
+    "render-build": "corepack enable && pnpm install --frozen-lockfile && pnpm build"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -20,15 +24,9 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
-    "@types/multer": "^1.4.12",
-    "@types/node": "^20.11.30",
-    "@types/ws": "^8.5.10",
+    "@types/multer": "^1.4.11",
+    "@types/node": "^20.14.11",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.6.3"
-  },
-  "engines": {
-    "node": ">=18.17 <23",
-    "pnpm": ">=8"
-  },
-  "packageManager": "pnpm@8.15.4"
+    "typescript": "^5.4.5"
+  }
 }
