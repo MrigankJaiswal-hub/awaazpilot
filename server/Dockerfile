@@ -1,26 +1,26 @@
-# -------- Build stage --------
+# ---- build stage (optional if using tsc) ----
 FROM node:18-alpine AS build
 WORKDIR /app
-COPY package.json pnpm-lock.yaml* ./
-RUN corepack enable && corepack prepare pnpm@9.7.0 --activate
-RUN pnpm install --frozen-lockfile=false
+COPY package*.json ./
+RUN npm ci
+COPY . .
+# If you use pnpm, swap to: RUN npm i -g pnpm && pnpm install --frozen-lockfile
+RUN npm run build
 
-COPY tsconfig.json ./
-COPY src ./src
-RUN pnpm build
-
-# -------- Runtime stage --------
+# ---- runtime stage ----
 FROM node:18-alpine
-ENV NODE_ENV=production
 WORKDIR /app
+ENV NODE_ENV=production
+# Koyeb sets PORT; we default to 3000
+ENV PORT=3000
 
-# Only prod deps
-COPY package.json pnpm-lock.yaml* ./
-RUN corepack enable && corepack prepare pnpm@9.7.0 --activate
-RUN pnpm install --prod --frozen-lockfile=false
-
+COPY package*.json ./
+RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/.env.example ./.env.example
 
-# Copy env at runtime via docker run -e or secrets; don't bake .env
+# If you need any non-TS assets (public/, views/, etc.) copy them too:
+# COPY --from=build /app/public ./public
+
 EXPOSE 3000
 CMD ["node", "dist/server.js"]
