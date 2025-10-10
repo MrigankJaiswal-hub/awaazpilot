@@ -1,4 +1,9 @@
+// web/src/components/Dubber.tsx
 import React, { useState } from 'react';
+
+// Read from Vite env at build, or fall back for local dev
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 export default function Dubber() {
   const [file, setFile] = useState<File | null>(null);
@@ -18,31 +23,34 @@ export default function Dubber() {
     }
 
     const sizeKB = (file.size / 1024).toFixed(1);
-    console.log(`Uploading ${file.name} (${sizeKB} KB) → /api/dub [${lang}]`);
+    console.log(`Uploading ${file.name} (${sizeKB} KB) → ${API_BASE}/api/dub [${lang}]`);
     setBusy(true);
     try {
       const form = new FormData();
       form.append('media', file);
       form.append('language', lang);
 
-      const r = await fetch('/api/dub', { method: 'POST', body: form });
+      const r = await fetch(`${API_BASE}/api/dub`, {
+        method: 'POST',
+        body: form,
+        // no credentials unless your server needs cookies
+      });
+
       const text = await r.text();
       let j: any = {};
-      try { j = JSON.parse(text); } catch { /* leave as text */ }
+      try { j = JSON.parse(text); } catch {}
 
       if (!r.ok) {
         setError(`Server error ${r.status}: ${r.statusText}\n${text}`);
         return;
       }
 
-      // Normalize
       const audioUrl = j?.audioUrl || j?.audioURL || j?.audio_file || j?.audioFile || null;
       const audioBase64 = j?.audioBase64 || j?.encodedAudio || null;
 
       if (audioUrl) {
         setResultUrl(audioUrl);
       } else if (audioBase64) {
-        // Build a blob URL from base64
         const bin = atob(audioBase64);
         const bytes = new Uint8Array(bin.length);
         for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
@@ -57,6 +65,8 @@ export default function Dubber() {
       setBusy(false);
     }
   }
+
+
 
   return (
     <div className="card">
@@ -79,20 +89,14 @@ export default function Dubber() {
         </button>
       </form>
 
-      {error && (
-        <pre className="error" style={{ whiteSpace: 'pre-wrap', marginTop: 12 }}>
-          {error}
-        </pre>
-      )}
+      {error && <pre className="error" style={{whiteSpace:'pre-wrap'}}>{error}</pre>}
 
       {resultUrl && (
         <div style={{ marginTop: 12 }}>
           <h3>✅ Dubbed Audio</h3>
           <audio controls src={resultUrl} />
           <div style={{ marginTop: 6 }}>
-            <a className="btn" href={resultUrl} download>
-              ⬇️ Download
-            </a>
+            <a className="btn" href={resultUrl} download>⬇️ Download</a>
           </div>
         </div>
       )}

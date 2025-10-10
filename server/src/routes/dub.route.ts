@@ -2,16 +2,21 @@ import { Router } from 'express';
 import multer from 'multer';
 import { log } from '../utils/logger';
 
+// In-memory upload (no tmp files)
 const upload = multer({ storage: multer.memoryStorage() });
+
 export const dubRouter = Router();
 
-/** Helper: pick first defined value */
-function pick<T = any>(...vals: (T | undefined | null)[]): T | undefined {
+/** tiny GET to prove route is mounted */
+dubRouter.get('/', (_req, res) => res.json({ ok: true, route: '/api/dub', method: 'GET' }));
+
+/** Utility to pick the first non-empty property */
+function pick<T = any>(...vals: (T | undefined | null)[]) {
   for (const v of vals) if (v !== undefined && v !== null && v !== '') return v as T;
   return undefined;
 }
 
-/** Normalize Murf output */
+/** Normalize Murf-ish responses into a single shape */
 function normalizeMurfOut(out: any) {
   const audioUrl =
     pick(
@@ -29,10 +34,15 @@ function normalizeMurfOut(out: any) {
   return { audioUrl, audioBase64, meta: out };
 }
 
-/** Example Murf call (adjust if you have different plan) */
+/**
+ * Minimal Murf call (adjust to your plan/endpoint).
+ * Uses global fetch (Node 18+).
+ */
 async function callMurfDub(language: string) {
   const API_KEY = process.env.MURF_API_KEY!;
   const url = 'https://api.murf.ai/v1/speech/generate';
+
+  // Use voices that exist in your tenant
   const voiceId = language === 'hi-IN' ? 'hi-IN-rahul' : 'en-IN-isha';
 
   const body = {
@@ -51,12 +61,19 @@ async function callMurfDub(language: string) {
   });
 
   const out = await resp.json().catch(() => ({}));
-  if (!resp.ok) throw new Error(`Murf ${resp.status}: ${JSON.stringify(out)}`);
+  if (!resp.ok) {
+    throw new Error(`Murf ${resp.status} ${resp.statusText}: ${JSON.stringify(out)}`);
+  }
   return out;
 }
 
-/** POST /api/dub */
-dubRouter.post('/dub', upload.single('media'), async (req, res) => {
+/**
+ * POST /api/dub
+ * fields:
+ *  - media: file (wav/mp3/mp4)  ← field name must be 'media'
+ *  - language: 'en-IN' | 'hi-IN'
+ */
+dubRouter.post('/', upload.single('media'), async (req, res) => {
   try {
     const language = String(req.body?.language || 'en-IN').trim();
 
@@ -89,11 +106,11 @@ dubRouter.post('/dub', upload.single('media'), async (req, res) => {
     });
   } catch (err: any) {
     log.error('[dub] failed', err);
-    return res.status(502).json({ error: 'Dub failed', detail: String(err?.message || err) });
+    return res.status(502).json({
+      error: 'Dub failed',
+      detail: String(err?.message || err),
+    });
   }
 });
-
-/** GET /api/dub/ping — for debugging */
-dubRouter.get('/dub/ping', (_req, res) => res.json({ ok: true, route: '/api/dub/ping' }));
 
 export default dubRouter;

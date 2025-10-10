@@ -1,43 +1,46 @@
-// WebSocket client helpers for AwaazPilot (Vite + React)
+// web/src/lib/ws-client.ts
+export type StreamFormat = 'mp3' | 'wav' | 'pcm16';
 
 export type VoiceConfig = {
-  language: string;              // 'mr-IN', 'te-IN', 'kn-IN', 'gu-IN', 'hi-IN', 'en-IN'
-  voiceId: string;               // Murf voice id
-  format?: 'mp3' | 'wav' | 'pcm16';
-  sampleRate?: number;           // e.g., 24000
-  style?: string;                // 'conversational', etc.
-  channels?: 1 | 2;              // for PCM16 playback
+  format?: StreamFormat;
+  language: string;
+  voiceId: string;
+  sampleRate?: number;
+  style?: string;
+  channels?: 1 | 2;
 };
 
-export function apiBase() {
-  // Vite exposes env via import.meta.env; keep safe fallback
-  const base = (import.meta as any)?.env?.VITE_API_BASE || 'http://localhost:3000';
-  return String(base).replace(/\/+$/, '');
+// Resolve API base (in this order):
+// 1) window.__API_BASE_URL__ (runtime override)
+// 2) VITE_API_BASE_URL (baked at build time)
+// 3) window.location.origin (same origin)
+function getApiBase(): string {
+  const runtime = (window as any).__API_BASE_URL__ as string | undefined;
+  const fromEnv = (import.meta as any).env?.VITE_API_BASE_URL as string | undefined;
+  return (runtime || fromEnv || window.location.origin).replace(/\/+$/, '');
 }
 
-export function wsUrl() {
-  const base = apiBase();
-  // Convert http(s) -> ws(s) and append our ws path
-  const u = new URL(base);
-  u.protocol = u.protocol.startsWith('https') ? 'wss:' : 'ws:';
-  u.pathname = '/ws/tts';
-  u.search = '';
-  return u.toString();
+// Build WS URL with correct scheme (ws/wss)
+function toWs(url: string): string {
+  // https -> wss, http -> ws
+  return url.replace(/^http/i, 'ws');
 }
 
 export function connectTTS(): WebSocket {
-  return new WebSocket(wsUrl());
+  const apiBase = getApiBase();
+  const wsUrl = `${toWs(apiBase)}/ws/tts`;
+
+  // helpful console trace
+  // eslint-disable-next-line no-console
+  console.log('[ws-client] connecting to', wsUrl);
+
+  const ws = new WebSocket(wsUrl);
+  return ws;
 }
 
 export function sendVoiceConfig(ws: WebSocket, cfg: VoiceConfig) {
-  if (ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: 'voice_config', voice_config: cfg }));
-  } else {
-    // queueing not implemented; caller should call after onopen
-    ws.addEventListener('open', () => {
-      ws.send(JSON.stringify({ type: 'voice_config', voice_config: cfg }));
-    }, { once: true });
-  }
+  const msg = { type: 'voice_config', ...cfg };
+  ws.send(JSON.stringify(msg));
 }
 
 export function sendText(ws: WebSocket, text: string) {
