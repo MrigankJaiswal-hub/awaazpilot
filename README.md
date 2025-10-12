@@ -74,7 +74,7 @@ S3 / Athena (historical runs, optional)
 |------|-----|
 | 🌐 Live App (Frontend) | [https://lambent-caramel-605436.netlify.app/](https://lambent-caramel-605436.netlify.app/) |
 | ⚙️ Backend Health | [https://awaazpilot-36sp.onrender.com/health](https://awaazpilot-36sp.onrender.com/health) |
-| 💾 GitHub Repository | _Add this repo link once pushed_ |
+| 💾 GitHub Repository | https://github.com/MrigankJaiswal-hub/awaazpilot |
 
 ---
 
