@@ -1,3 +1,18 @@
+name: Deploy (Netlify frontend + Render backend)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "server/**"
+      - "web/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch: {}   # allow manual runs
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   backend:
     name: 🔧 Deploy Render Backend
@@ -10,25 +25,27 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "pnpm"
+          cache: pnpm
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10
 
+      # Optional sanity build to catch TS errors before calling Render
       - name: Install deps (server)
         working-directory: server
         run: pnpm install --frozen-lockfile
 
-      - name: Build server (sanity check)
+      - name: Build server (sanity)
         working-directory: server
         run: pnpm build
 
-      - name: Trigger Render deploy (retry)
+      - name: Trigger Render deploy (retry x3)
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: |
+          test -n "$RENDER_DEPLOY_HOOK" || { echo "RENDER_DEPLOY_HOOK not set"; exit 1; }
           for i in 1 2 3; do
             echo "POST $RENDER_DEPLOY_HOOK (attempt $i/3)"
             if curl -fsS -X POST "$RENDER_DEPLOY_HOOK"; then
@@ -45,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: backend
     env:
-      VITE_API_BASE_URL: ${{ secrets.BACKEND_URL }}
+      VITE_API_BASE_URL: ${{ secrets.BACKEND_URL }}   # e.g. https://awaazpilot-36sp.onrender.com
       NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
       NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
     steps:
@@ -56,7 +73,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "pnpm"
+          cache: pnpm
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
