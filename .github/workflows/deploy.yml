@@ -1,94 +1,85 @@
-name: Deploy (Netlify frontend + Render backend)
+name: Deploy (Netlify + Render)
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
-# prevent overlapping deploys on rapid pushes
 concurrency:
   group: deploy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  backend-render-deploy:
-    name: Trigger Render Deploy (server)
+  backend:
+    name: 🔧 Deploy Render Backend
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # OPTIONAL sanity check: make sure server builds
-      - name: Set up Node
+      - name: Setup Node & pnpm
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
-          cache: 'pnpm'
-      - name: Enable corepack (pnpm)
-        run: |
+          node-version: 20
+          cache: "pnpm"
+
+      - run: |
           corepack enable
           corepack prepare pnpm@10.0.0 --activate
-      - name: Install server deps
+
+      - name: Install deps (server)
         working-directory: server
         run: pnpm install --frozen-lockfile
-      - name: Type-check / build server
+
+      - name: Type check + build
         working-directory: server
         run: pnpm build
 
-      # 🔔 Trigger Render deploy via Deploy Hook
-      # Create a Deploy Hook in Render and add it as a secret named RENDER_DEPLOY_HOOK
-      - name: Call Render deploy hook
+      - name: Trigger Render deploy
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: |
-          curl -sSf -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
-      - name: Note
-        run: echo "Render deploy triggered. (Render will build & release the server.)"
+          echo "Calling Render deploy hook..."
+          curl -fsSL -X POST "$RENDER_DEPLOY_HOOK" || echo "⚠️ Render deploy hook failed (check secret)."
 
-  frontend-netlify-deploy:
-    name: Build & Deploy Frontend (web → Netlify)
+  frontend:
+    name: 🌐 Deploy Netlify Frontend
     runs-on: ubuntu-latest
-    needs: [ backend-render-deploy ]
+    needs: backend
     env:
-      # Backend API base URL to bake into the Vite build
-      VITE_API_BASE_URL: ${{ secrets.BACKEND_URL }}  # e.g. https://awaazpilot-36sp.onrender.com
+      VITE_API_BASE_URL: ${{ secrets.BACKEND_URL }} # e.g. https://awaazpilot-36sp.onrender.com
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node
+      - name: Setup Node & pnpm
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
-          cache: 'pnpm'
+          node-version: 20
+          cache: "pnpm"
 
-      - name: Enable corepack (pnpm)
-        run: |
+      - run: |
           corepack enable
           corepack prepare pnpm@10.0.0 --activate
 
-      - name: Install web deps
+      - name: Install deps (web)
         working-directory: web
         run: pnpm install --frozen-lockfile
 
-      - name: Build web (Vite)
+      - name: Build Vite app
         working-directory: web
         env:
           VITE_API_BASE_URL: ${{ env.VITE_API_BASE_URL }}
         run: pnpm build
 
-      # Deploy to Netlify using netlify-cli
-      # Add NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID as repo secrets
-      - name: Install Netlify CLI
-        run: pnpm dlx netlify-cli@17.34.2 --version
-      - name: Deploy to Netlify (production)
+      - name: Deploy to Netlify
         working-directory: web
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
           pnpm dlx netlify-cli@17.34.2 deploy \
-            --dir=dist \
+            --auth "$NETLIFY_AUTH_TOKEN" \
+            --site "$NETLIFY_SITE_ID" \
+            --dir dist \
             --prod \
-            --message "GitHub Actions deploy $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-
-      - name: Done
-        run: echo "Frontend deployed to Netlify 🚀"
+            --message "Automated deploy $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
