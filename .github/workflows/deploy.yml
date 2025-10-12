@@ -31,23 +31,31 @@ jobs:
         working-directory: server
         run: pnpm install --frozen-lockfile
 
-      - name: Type check + build
+      - name: Build server (sanity check)
         working-directory: server
         run: pnpm build
 
-      - name: Trigger Render deploy
+      - name: Trigger Render deploy (retry)
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: |
-          echo "Calling Render deploy hook..."
-          curl -fsSL -X POST "$RENDER_DEPLOY_HOOK" || echo "⚠️ Render deploy hook failed (check secret)."
+          for i in 1 2 3; do
+            echo "POST $RENDER_DEPLOY_HOOK (attempt $i/3)"
+            if curl -fsS -X POST "$RENDER_DEPLOY_HOOK"; then
+              echo "✅ Render deploy hook triggered."
+              exit 0
+            fi
+            echo "⏳ Retry in 10s..."
+            sleep 10
+          done
+          echo "❌ Render deploy hook failed."; exit 1
 
   frontend:
     name: 🌐 Deploy Netlify Frontend
     runs-on: ubuntu-latest
     needs: backend
     env:
-      VITE_API_BASE_URL: ${{ secrets.BACKEND_URL }} # e.g. https://awaazpilot-36sp.onrender.com
+      VITE_API_BASE_URL: ${{ secrets.BACKEND_URL }}
       NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
       NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
     steps:
@@ -68,7 +76,22 @@ jobs:
         working-directory: web
         run: pnpm install --frozen-lockfile
 
-      - name: Build Vite app
+      - name: Wait for backend health
+        run: |
+          URL="${{ secrets.BACKEND_URL }}/health"
+          echo "🔍 Checking backend health at $URL ..."
+          for i in {1..60}; do
+            RES=$(curl -fsS "$URL" || true)
+            if echo "$RES" | grep -q '"ok":true'; then
+              echo "✅ Backend healthy and reachable"
+              exit 0
+            fi
+            echo "⏳ Waiting... ($i/60)"
+            sleep 5
+          done
+          echo "❌ Backend never became healthy."; exit 1
+
+      - name: Build Vite frontend
         working-directory: web
         env:
           VITE_API_BASE_URL: ${{ env.VITE_API_BASE_URL }}
@@ -82,4 +105,7 @@ jobs:
             --site "$NETLIFY_SITE_ID" \
             --dir dist \
             --prod \
-            --message "Automated deploy $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            --message "🚀 Auto-deploy $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+
+      - name: Done
+        run: echo "✅ Netlify frontend deployed successfully."
