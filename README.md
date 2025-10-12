@@ -102,7 +102,7 @@ S3 / Athena (historical runs, optional)
 
 ### 1️⃣ Clone & Setup
 ```bash
-git clone https://github.com/<your-username>/awaazpilot.git
+git clone https://github.com/Mrigank Jaiswal-hub/awaazpilot.git
 cd awaazpilot
 
 2️⃣ Install dependencies
