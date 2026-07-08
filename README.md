@@ -144,15 +144,17 @@ pnpm dev
 ```
 ```bash
 Visit → http://localhost:5173
-``
-##🌍 Deployment
+```
+---
+## 🌍 Deployment
 | Service                | URL                                                                                      | Notes              |
 | ---------------------- | ---------------------------------------------------------------------------------------- | ------------------ |
 | **Render (Backend)**   | [https://awaazpilot-36sp.onrender.com](https://awaazpilot-36sp.onrender.com)             | Express + WS Proxy |
 | **Netlify (Frontend)** | [https://lambent-caramel-605436.netlify.app](https://lambent-caramel-605436.netlify.app) | Vite static site   |
 | **Env Vars (Netlify)** | `VITE_API_BASE_URL=https://awaazpilot-36sp.onrender.com`                                 | Required for CORS  |
+---
 
-✨ Credits
+## ✨ Credits
 
 Developer: Mrigank Jaisawal
 
