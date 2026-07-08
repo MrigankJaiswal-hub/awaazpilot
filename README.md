@@ -104,46 +104,48 @@ S3 / Athena (historical runs, optional)
 ```bash
 git clone https://github.com/Mrigank Jaiswal-hub/awaazpilot.git
 cd awaazpilot
-
-2️⃣ Install dependencies
+```
+### 2️⃣ Install dependencies
 
 Frontend:
-
+```bash
 cd web
 pnpm install
-
+```
 
 Backend:
-
+```bash
 cd server
 pnpm install
-
-3️⃣ Add environment variables
+```
+### 3️⃣ Add environment variables
 
 For Backend (server/.env):
-
+```bash
 PORT=3000
 MURF_API_KEY=<your-murf-api-key>
 FRONTEND_ORIGIN=http://localhost:5173
-
+```
 
 For Frontend (web/.env):
-
+```bash
 VITE_API_BASE_URL=http://localhost:3000
-
-4️⃣ Run locally
+```
+### 4️⃣ Run locally
 # Backend
+```bash
 cd server
 pnpm dev
-
+```
 # Frontend (new terminal)
+```bash
 cd web
 pnpm dev
-
-
+```
+```bash
 Visit → http://localhost:5173
-
-🌍 Deployment
+``
+##🌍 Deployment
 | Service                | URL                                                                                      | Notes              |
 | ---------------------- | ---------------------------------------------------------------------------------------- | ------------------ |
 | **Render (Backend)**   | [https://awaazpilot-36sp.onrender.com](https://awaazpilot-36sp.onrender.com)             | Express + WS Proxy |
